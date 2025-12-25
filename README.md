@@ -1,6 +1,6 @@
 # yfinance Stock Valuation API
 
-Aplikasi Flask untuk mengambil data valuasi saham menggunakan yfinance dengan output format JSON.
+Aplikasi Flask untuk mengambil data saham (harga, volume, dan valuasi) menggunakan yfinance dengan output format JSON.
 
 ## Setup
 
@@ -17,13 +17,6 @@ source venv/bin/activate
 3. Install dependencies:
 ```bash
 pip install -r requirements.txt
-```
-
-## Menjalankan Script Standalone
-
-```bash
-source venv/bin/activate
-python3 test_bnbr.py
 ```
 
 ## Menjalankan Flask API
@@ -82,29 +75,33 @@ GET http://localhost:5000/
 ```
 Menampilkan informasi tentang API dan daftar endpoints yang tersedia.
 
-### 2. BNBR Valuation
-```
-GET http://localhost:5000/api/bnbr
-```
-Mengambil data valuasi saham Bakrie & Brothers (BNBR.JK).
-
-### 3. Stock Valuation by Ticker
+### 2. Stock Data by Ticker
 ```
 GET http://localhost:5000/api/stock/<ticker>
 ```
-Mengambil data valuasi saham berdasarkan ticker. Contoh:
-- `http://localhost:5000/api/stock/BNBR.JK`
-- `http://localhost:5000/api/stock/BBRI.JK`
-- `http://localhost:5000/api/stock/AAPL`
+Mengambil data lengkap saham (harga, volume, dan valuasi) berdasarkan ticker.
+
+**Contoh penggunaan:**
+- `http://localhost:5000/api/stock/BNBR.JK` - Saham Bakrie & Brothers
+- `http://localhost:5000/api/stock/BBRI.JK` - Saham Bank BRI
+- `http://localhost:5000/api/stock/AAPL` - Saham Apple (NASDAQ)
+- `http://localhost:5000/api/stock/TSLA` - Saham Tesla
+
+**Format ticker:**
+- Saham Indonesia: `KODE.JK` (contoh: `BNBR.JK`, `BBRI.JK`)
+- Saham internasional: `KODE` (contoh: `AAPL`, `TSLA`, `GOOGL`)
 
 ## Response Format
 
-Semua endpoint mengembalikan data dalam format JSON:
+Endpoint mengembalikan data dalam format JSON dengan struktur berikut:
 
 ```json
 {
   "symbol": "BNBR.JK",
   "company_name": "PT Bakrie & Brothers Tbk",
+  "current_price": 116.0,
+  "volume_shares": 615821000,
+  "volume_lot": 6158210.0,
   "valuation_metrics": {
     "market_cap": 20116351746048,
     "enterprise_value": 21177579864064,
@@ -119,6 +116,14 @@ Semua endpoint mengembalikan data dalam format JSON:
 }
 ```
 
+**Penjelasan field:**
+- `symbol`: Kode ticker saham
+- `company_name`: Nama lengkap perusahaan
+- `current_price`: Harga terakhir saham (atau harga penutupan jika pasar tutup)
+- `volume_shares`: Volume perdagangan dalam lembar saham
+- `volume_lot`: Volume perdagangan dalam lot (1 lot = 100 lembar, khusus Indonesia)
+- `valuation_metrics`: Metrik valuasi perusahaan
+
 ## Testing API
 
 Menggunakan curl:
@@ -126,15 +131,19 @@ Menggunakan curl:
 # Test root endpoint
 curl http://localhost:5000/
 
-# Test BNBR endpoint
-curl http://localhost:5000/api/bnbr
-
-# Test stock by ticker
+# Test stock data (BNBR)
 curl http://localhost:5000/api/stock/BNBR.JK
+
+# Test stock data (BBRI)
+curl http://localhost:5000/api/stock/BBRI.JK
+
+# Test stock data dengan formatting JSON
+curl http://localhost:5000/api/stock/BNBR.JK | python3 -m json.tool
 ```
 
 Menggunakan browser:
-- Buka `http://localhost:5000/api/bnbr` di browser
+- Buka `http://localhost:5000/` untuk melihat info API
+- Buka `http://localhost:5000/api/stock/BNBR.JK` untuk melihat data saham BNBR
 
 ## Catatan Penting
 
@@ -142,15 +151,28 @@ Menggunakan browser:
 
 yfinance adalah library Python yang mengambil data dari Yahoo Finance secara publik. Tidak ada autentikasi atau registrasi yang diperlukan. Anda bisa langsung menggunakannya setelah diinstall.
 
-## Metrik yang Tersedia
+## Data yang Tersedia
 
-- Market Cap
-- Enterprise Value
-- Trailing P/E
-- Forward P/E
-- PEG Ratio
-- Price/Sales (ttm)
-- Price/Book (mrq)
-- Enterprise Value/Revenue
-- Enterprise Value/EBITDA
+### Informasi Harga & Volume
+- **Harga Terakhir**: Harga saham saat ini atau harga penutupan terakhir
+- **Volume (Lembar)**: Volume perdagangan dalam satuan lembar saham
+- **Volume (Lot)**: Volume perdagangan dalam satuan lot (1 lot = 100 lembar, khusus Indonesia)
+
+### Metrik Valuasi
+- **Market Cap**: Kapitalisasi pasar
+- **Enterprise Value**: Nilai perusahaan
+- **Trailing P/E**: Price-to-Earnings ratio (trailing 12 months)
+- **Forward P/E**: Price-to-Earnings ratio (forward)
+- **PEG Ratio**: Price/Earnings to Growth ratio
+- **Price/Sales (ttm)**: Price-to-Sales ratio (trailing 12 months)
+- **Price/Book (mrq)**: Price-to-Book ratio (most recent quarter)
+- **Enterprise Value/Revenue**: Enterprise Value to Revenue ratio
+- **Enterprise Value/EBITDA**: Enterprise Value to EBITDA ratio
+
+## Catatan tentang Data
+
+- Data diambil dari Yahoo Finance melalui library yfinance
+- Harga dan volume adalah data real-time atau data terakhir yang tersedia
+- Beberapa metrik mungkin `null` jika data tidak tersedia untuk saham tertentu
+- Volume dalam lot hanya relevan untuk saham Indonesia (format `.JK`)
 
